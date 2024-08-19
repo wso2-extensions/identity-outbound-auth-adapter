@@ -38,7 +38,7 @@ import org.wso2.carbon.identity.application.authenticator.adapter.internal.Authe
 import org.wso2.carbon.identity.application.authenticator.adapter.model.AllowedOperationBuilder;
 import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticationRequestEvent;
 import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticationRequestEvent.AuthenticatedStep;
-import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticationRequestUser;
+import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticatingUser;
 import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticationRequest;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
@@ -103,7 +103,7 @@ public class AuthenticationRequestBuilder implements ActionExecutionRequestBuild
             throws ActionExecutionRequestBuilderException {
 
         try {
-            return new AuthenticationRequestUser(authenticatedUser.getUserId(), authenticatedUser);
+            return new AuthenticatingUser(authenticatedUser.getUserId(), authenticatedUser);
         } catch (UserIdNotFoundException e) {
             throw new ActionExecutionRequestBuilderException("User ID not found for current authenticated user.", e);
         }

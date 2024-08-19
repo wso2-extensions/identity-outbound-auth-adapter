@@ -30,19 +30,12 @@ import org.wso2.carbon.identity.action.execution.model.ActionInvocationResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionInvocationSuccessResponse;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.action.execution.model.Event;
-import org.wso2.carbon.identity.action.execution.model.Operation;
 import org.wso2.carbon.identity.action.execution.model.PerformableOperation;
 import org.wso2.carbon.identity.action.execution.model.UserStore;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
-import org.wso2.carbon.identity.application.authenticator.adapter.internal.AuthenticatorAdapterDataHolder;
-import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticationRequestUser;
+import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticatingUser;
 import org.wso2.carbon.identity.application.authenticator.adapter.model.UserClaim;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
-import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.List;
 import java.util.Map;
@@ -73,14 +66,16 @@ public class AuthenticationResponseProcessor implements ActionExecutionResponseP
         if (ActionInvocationResponse.Status.SUCCESS.equals(actionStatus)) {
             List<PerformableOperation> operationsToPerform = actionInvocationSuccessResponse.getOperations();
             try {
-                AuthenticationRequestUser authRequestUser = new AuthenticationRequestUser(StringUtils.EMPTY);
+                AuthenticatingUser authenticatingUser = new AuthenticatingUser(StringUtils.EMPTY);
                 UserStore userStore = new UserStore(StringUtils.EMPTY);
                 if (operationsToPerform != null) {
                     for (PerformableOperation operation : operationsToPerform) {
-                        performOperation(operation, authRequestUser, userStore);
+                        performOperation(operation, authenticatingUser, userStore);
                     }
                 }
-                context.setSubject(createAuthenticateduser(authRequestUser, context, userStore));
+                AuthenticatedUserBuilder authenticatedUserBuilder = new AuthenticatedUserBuilder(authenticatingUser);
+                context.setSubject(authenticatedUserBuilder.createAuthenticateduser(
+                        authenticatingUser, context, userStore));
             } catch (UserStoreException e) {
                 throw new ActionExecutionResponseProcessorException("Error occurred when trying to build authenticated " +
                         "user from the external authenticator service response." ,e);
@@ -105,12 +100,8 @@ public class AuthenticationResponseProcessor implements ActionExecutionResponseP
      *
      * @param performableOperation  PerformableOperation from the external authentication service response.
      */
-    public void performOperation(PerformableOperation performableOperation, AuthenticationRequestUser authRequestUser,
-                                 UserStore userStoreDomain) throws ActionExecutionResponseProcessorException {
-
-        if (!isAllowedOperation(performableOperation.getOp())) {
-            return;
-        }
+    private void performOperation(PerformableOperation performableOperation, AuthenticatingUser authRequestUser,
+                                  UserStore userStoreDomain) throws ActionExecutionResponseProcessorException {
 
         switch (performableOperation.getPath()) {
             case AuthenticatorAdapterConstants.AuthRequestEntityPaths.USER_ID_PATH:
@@ -137,52 +128,9 @@ public class AuthenticationResponseProcessor implements ActionExecutionResponseP
     }
 
     /**
-     * Only the REPLACE operation is allowed. If any other operation is provided, it will be ignored
-     * and the authenticated user will not be updated.
-     *
-     * @param operation Operation from the external authentication service response.
-     */
-    private boolean isAllowedOperation(Operation operation) {
-
-        return Operation.REPLACE.equals(operation);
-    }
-
-    /**
-     * Create a new authenticated user based on the executed operations.
-     *
-     * @throws ActionExecutionResponseProcessorException    If error occurred while creating authenticated user
-     *                                                      due to invalid operation.
-     * @throws UserStoreException                           If error occurred while retrieving local user details.
-     */
-    public AuthenticatedUser createAuthenticateduser(AuthenticationRequestUser user, AuthenticationContext context,
-            UserStore userStore) throws ActionExecutionResponseProcessorException, UserStoreException {
-
-        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-        authenticatedUser.setFederatedUser(user.resolveUserType());
-        authenticatedUser.setUserAttributes(user.resolveUserClaims());
-
-        if (authenticatedUser.isFederatedUser()) {
-            authenticatedUser.setFederatedIdPName(context.getExternalIdP().getIdPName());
-        } else {
-            /* User ID can only be set for local users. If the user is a federated user, will be ignored.
-             */
-            AbstractUserStoreManager userStoreManager = resolveUserStoreManager(context, userStore.getName());
-            authenticatedUser.setUserStoreDomain(userStore.getName());
-            String userId = user.resolveUserId(userStoreManager);
-            authenticatedUser.setUserId(userId);
-            authenticatedUser.setUserName(userStoreManager.getUserNameFromUserID(userId));
-        }
-        authenticatedUser.setAuthenticatedSubjectIdentifier(
-                user.resolveSubjectIdentifier(authenticatedUser.isFederatedUser()));
-        authenticatedUser.setTenantDomain(context.getTenantDomain());
-
-        return authenticatedUser;
-    }
-
-    /**
      * Cast the given object to String.
-     * @param object    Object that need to cast.
      *
+     * @param object    Object that need to cast.
      * @return String which cast to the String class.
      * @throws ActionExecutionResponseProcessorException If object cannot be cast to String.
      */
@@ -199,8 +147,8 @@ public class AuthenticationResponseProcessor implements ActionExecutionResponseP
 
     /**
      * Cast the given object to a claim.
-     * @param object    Object that need to cast.
      *
+     * @param object    Object that need to cast.
      * @return userClaim which casted to the UserClaim class.
      */
     private UserClaim castToClaim(Object object) {
@@ -212,33 +160,5 @@ public class AuthenticationResponseProcessor implements ActionExecutionResponseP
             return null;
         }
     }
-
-    private AbstractUserStoreManager resolveUserStoreManager(AuthenticationContext context, String userStoreDomain)
-            throws ActionExecutionResponseProcessorException {
-
-        AbstractUserStoreManager userStoreManager;
-        try {
-            RealmService realmService = AuthenticatorAdapterDataHolder.getInstance().getRealmService();
-            int tenantId = realmService.getTenantManager().getTenantId(context.getTenantDomain());
-            UserRealm userRealm = (UserRealm) realmService.getTenantUserRealm(tenantId);
-            if (IdentityUtil.getPrimaryDomainName().equals(userStoreDomain)) {
-                userStoreManager = (AbstractUserStoreManager) userRealm.getUserStoreManager();
-            } else {
-                userStoreManager = (AbstractUserStoreManager) userRealm.getUserStoreManager()
-                        .getSecondaryUserStoreManager(userStoreDomain);
-            }
-        } catch (UserStoreException e) {
-            throw new ActionExecutionResponseProcessorException("An error occurs when trying to retrieve the userStore "
-                    +  "manager for the given userStore domain name:" +  userStoreDomain, e );
-        }
-
-        if (userStoreManager == null) {
-            throw new ActionExecutionResponseProcessorException("No userStore is found for the given userStore " +
-                    "domain name: " + userStoreDomain);
-        }
-
-        return userStoreManager;
-    }
-
 }
 

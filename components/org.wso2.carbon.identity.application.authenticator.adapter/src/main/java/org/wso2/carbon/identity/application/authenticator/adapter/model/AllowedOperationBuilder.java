@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.application.authenticator.adapter.model;
 
 import org.wso2.carbon.identity.action.execution.model.AllowedOperation;
 import org.wso2.carbon.identity.action.execution.model.Operation;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authenticator.adapter.AuthenticatorAdapterConstants;
 
 import java.util.ArrayList;
