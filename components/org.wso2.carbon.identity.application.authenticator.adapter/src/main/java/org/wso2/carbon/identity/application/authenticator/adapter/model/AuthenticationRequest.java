@@ -30,67 +30,9 @@ import java.util.Map;
  */
 public class AuthenticationRequest extends Request {
 
-    private static final List<String> headersToAvoid = new ArrayList<>();
-    private static final List<String> paramsToAvoid = new ArrayList<>();
+    public AuthenticationRequest(Map<String, String[]> additionalHeaders, Map<String, String[]> additionalParams) {
 
-    static {
-        headersToAvoid.add("authorization");
-        headersToAvoid.add("cookie");
-        headersToAvoid.add("set-cookie");
-        headersToAvoid.add("accept-encoding");
-        headersToAvoid.add("accept-language");
-        headersToAvoid.add("content-length");
-        headersToAvoid.add("content-type");
-        // parameters from authorization code grant
-        paramsToAvoid.add("code");
-        paramsToAvoid.add("redirect_uri");
-        paramsToAvoid.add("grant_type");
-        paramsToAvoid.add("scope");
-        // parameters from password grant
-        paramsToAvoid.add("username");
-        paramsToAvoid.add("password");
-        // parameters from refresh token grant
-        paramsToAvoid.add("refresh_token");
-        // parameters used for client authentication for token endpoint
-        paramsToAvoid.add("client_id");
-        paramsToAvoid.add("client_secret");
-        paramsToAvoid.add("client_assertion_type");
-        paramsToAvoid.add("client_assertion");
-    }
-
-    private AuthenticationRequest(Builder builder) {
-
-        this.additionalHeaders = builder.additionalHeaders;
-        this.additionalParams = builder.additionalParams;
-    }
-
-    /**
-     * Builder for Authentication Request.
-     */
-    public static class Builder {
-
-        private final Map<String, String[]> additionalHeaders = new HashMap<>();
-        private final Map<String, String[]> additionalParams = new HashMap<>();
-
-        public Builder addAdditionalHeader(String key, String[] value) {
-
-            if (!headersToAvoid.contains(key.toLowerCase())) {
-                this.additionalHeaders.put(key, value);
-            }
-            return this;
-        }
-
-        public Builder addAdditionalParam(String key, String[] value) {
-
-            if (!paramsToAvoid.contains(key)) {
-                this.additionalParams.put(key, value);
-            }
-            return this;
-        }
-
-        public AuthenticationRequest build() {
-
-            return new AuthenticationRequest(this);
-        }
+        this.additionalHeaders = additionalHeaders;
+        this.additionalParams  = additionalParams;
     }
 }

@@ -36,16 +36,17 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.U
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authenticator.adapter.internal.AuthenticatorAdapterDataHolder;
 import org.wso2.carbon.identity.application.authenticator.adapter.model.AllowedOperationBuilder;
+import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticationRequestEvent;
 import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticationRequestEvent.AuthenticatedStep;
 import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticatingUser;
-import org.wso2.carbon.identity.application.authenticator.adapter.model.AuthenticationRequest;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.organization.management.service.exception.OrganizationManagementException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -59,7 +60,7 @@ public class AuthenticationRequestBuilder implements ActionExecutionRequestBuild
     @Override
     public ActionType getSupportedActionType() {
 
-        return ActionType.AUTHENTICATION;
+        return ActionType.PRE_ISSUE_ACCESS_TOKEN;
     }
 
     @Override
@@ -111,17 +112,20 @@ public class AuthenticationRequestBuilder implements ActionExecutionRequestBuild
 
     private Organization getOrganizationForEventBuilder(AuthenticatedUser authenticatedUser) throws ActionExecutionRequestBuilderException {
 
+        String organizationId = authenticatedUser.getUserResidentOrganization();
         try {
-            String organizationId = authenticatedUser.getUserResidentOrganization();
             if (organizationId != null && !organizationId.isEmpty()) {
                 String organizationName = AuthenticatorAdapterDataHolder.getInstance().getOrganizationManager()
                         .getOrganizationNameById(authenticatedUser.getUserResidentOrganization());
                 return new Organization(authenticatedUser.getUserResidentOrganization(), organizationName);
             }
         } catch (OrganizationManagementException e) {
-            throw new ActionExecutionRequestBuilderException("Error occurred while retrieving organization name " +
-                    "of the authorized user", e);
+            LOG.debug("Error occurred while retrieving organization name of the authorized user: " + organizationId, e);
+            return null;
         }
+
+        LOG.debug("The organization id is not set for the authorized user with username: "
+                + authenticatedUser.getUserName());
         return null;
     }
 
@@ -139,20 +143,21 @@ public class AuthenticationRequestBuilder implements ActionExecutionRequestBuild
 
     private Request getRequest(HttpServletRequest request) {
 
-        AuthenticationRequest.Builder authenticationRequestBuilder = new AuthenticationRequest.Builder();
+        Map<String, String[]> additionalHeaders = new HashMap<>();
+        Map<String, String[]> additionalParams = new HashMap<>();
 
         Enumeration<String> headers = request.getHeaderNames();
         while (headers.hasMoreElements()) {
             String header = headers.nextElement();
-            authenticationRequestBuilder.addAdditionalHeader(header, new String[]{request.getHeader(header)});
+            additionalHeaders.put(header, new String[]{request.getHeader(header)});
         }
 
         Enumeration<String> requestParameters = request.getParameterNames();
         while (requestParameters.hasMoreElements()) {
             String parameter = requestParameters.nextElement();
-            authenticationRequestBuilder.addAdditionalParam(parameter, new String[]{request.getParameter(parameter)});
+            additionalParams.put(parameter, new String[]{request.getParameter(parameter)});
         }
 
-        return authenticationRequestBuilder.build();
+        return new AuthenticationRequest(additionalHeaders,additionalParams);
     }
 }

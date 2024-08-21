@@ -30,6 +30,9 @@ public class AuthenticatorAdapterConstants {
     public static final String AUTH_REQUEST = "authenticationRequest";
     public static final String AUTH_CONTEXT = "authContext";
     public static final String FLOW_ID = "flowId";
+    public static final String ACTION_ID_CONFIG = "ActionId";
+    public static final String AUTH_USER_TYPE = "authUserType";
+    public static final String REDIRECTION_URL = "redirectionURL";
 
     /**
      * This holds the paths of the entities in the payload that communicate with the external authentication service.
