@@ -23,7 +23,7 @@ package org.wso2.carbon.identity.application.authenticator.adapter;
  */
 public class AuthenticatorAdapterConstants {
 
-    public static final String AUTHENTICATOR_NAME = "AuthenticatorAdapter";
+    public static final String AUTHENTICATOR_NAME = "AbstractAuthenticatorAdapter";
     public static final String AUTHENTICATOR_FRIENDLY_NAME = "externalAuthenticator";
     public static final String[] TAG = new String[] {"external", "custom"};
     public static final String WSO2_CLAIM_DIALECT = "http://wso2.org/claims";

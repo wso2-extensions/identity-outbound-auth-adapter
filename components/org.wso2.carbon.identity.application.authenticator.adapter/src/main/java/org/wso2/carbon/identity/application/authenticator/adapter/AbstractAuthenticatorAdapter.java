@@ -25,12 +25,11 @@ import org.wso2.carbon.identity.action.execution.model.ActionExecutionStatus;
 import org.wso2.carbon.identity.action.execution.model.ActionType;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authenticator.adapter.internal.AuthenticatorAdapterDataHolder;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -40,14 +39,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-
 /**
  * This class holds the external custom authentication.
  */
-public class AuthenticatorAdapter extends AbstractApplicationAuthenticator implements FederatedApplicationAuthenticator {
+public abstract class AbstractAuthenticatorAdapter extends AbstractApplicationAuthenticator {
 
-    private static final Log log = LogFactory.getLog(AuthenticatorAdapter.class);
-    private String authenticatorName = AuthenticatorAdapterConstants.AUTHENTICATOR_NAME;
+    private static final Log log = LogFactory.getLog(AbstractAuthenticatorAdapter.class);
+    protected String authenticatorName = AuthenticatorAdapterConstants.AUTHENTICATOR_NAME;
+    protected String friendlyName = AuthenticatorAdapterConstants.AUTHENTICATOR_FRIENDLY_NAME;;
 
     @Override
     public boolean canHandle(HttpServletRequest request) {
@@ -56,9 +55,9 @@ public class AuthenticatorAdapter extends AbstractApplicationAuthenticator imple
     }
 
     @Override
-    public AuthenticatorType getAuthenticatorType() {
+    public IdentityConstants.DefinedByType getDefinedByType() {
 
-        return AuthenticatorType.CUSTOM;
+        return IdentityConstants.DefinedByType.USER;
     }
 
     @Override
@@ -114,19 +113,13 @@ public class AuthenticatorAdapter extends AbstractApplicationAuthenticator imple
     @Override
     public String getFriendlyName() {
 
-        return AuthenticatorAdapterConstants.AUTHENTICATOR_FRIENDLY_NAME;
+        return friendlyName;
     }
 
     @Override
     public String getName() {
 
         return authenticatorName;
-    }
-
-    @Override
-    public String setName(String name) throws UnsupportedOperationException {
-
-        return authenticatorName = name;
     }
 
     @Override

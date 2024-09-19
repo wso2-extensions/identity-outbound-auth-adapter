@@ -25,19 +25,17 @@ import org.wso2.carbon.identity.action.execution.ActionExecutionRequestBuilder;
 import org.wso2.carbon.identity.action.execution.ActionExecutionResponseProcessor;
 import org.wso2.carbon.identity.action.execution.ActionExecutorService;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authenticator.adapter.AuthenticatorAdapter;
+import org.wso2.carbon.identity.application.authenticator.adapter.*;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
-import org.wso2.carbon.identity.application.authenticator.adapter.AuthenticationRequestBuilder;
-import org.wso2.carbon.identity.application.authenticator.adapter.AuthenticationResponseProcessor;
 import org.wso2.carbon.identity.organization.management.service.OrganizationManager;
 import org.wso2.carbon.user.core.service.RealmService;
 
 @Component(
-        name = "identity.application.authenticator.external",
+        name = "identity.application.authenticator.adapter",
         immediate = true
 )
 public class AuthenticatorAdapterServiceComponent {
@@ -48,8 +46,8 @@ public class AuthenticatorAdapterServiceComponent {
     protected void activate(ComponentContext ctxt) {
 
         try {
-            AuthenticatorAdapter customExternalAuthenticator = new AuthenticatorAdapter();
-            ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(), customExternalAuthenticator, null);
+            ctxt.getBundleContext().registerService(AuthenticationAdapterService.class.getName(),
+                    new AuthenticationAdapterService(), null);
             ctxt.getBundleContext().registerService(ActionExecutionRequestBuilder.class,
                     new AuthenticationRequestBuilder(), null);
             ctxt.getBundleContext().registerService(ActionExecutionResponseProcessor.class,
