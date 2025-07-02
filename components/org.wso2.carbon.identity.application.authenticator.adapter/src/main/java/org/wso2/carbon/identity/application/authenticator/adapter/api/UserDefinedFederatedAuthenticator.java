@@ -19,15 +19,8 @@
 package org.wso2.carbon.identity.application.authenticator.adapter.api;
 
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatorData;
 import org.wso2.carbon.identity.application.authenticator.adapter.internal.AbstractAuthenticatorAdapter;
 import org.wso2.carbon.identity.application.common.model.UserDefinedFederatedAuthenticatorConfig;
-
-import java.util.Optional;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * This is the authenticator class to authenticate and identify user whose identity managed externally.
@@ -42,28 +35,6 @@ public class UserDefinedFederatedAuthenticator extends AbstractAuthenticatorAdap
 
         return true;
     }
-
-    @Override
-    public Optional<AuthenticatorData> getAuthInitiationData(AuthenticationContext context)
-            throws AuthenticationFailedException {
-
-        return super.getAuthInitiationData(context);
-    }
-
-    @Override
-    public boolean isSatisfyAuthenticatorPrerequisites(HttpServletRequest request, AuthenticationContext context)
-            throws AuthenticationFailedException {
-
-        return super.isSatisfyAuthenticatorPrerequisites(request, context);
-    }
-
-    @Override
-    public boolean canHandleRequestFromMultiOptionStep(HttpServletRequest request, AuthenticationContext context) {
-
-        return super.canHandleRequestFromMultiOptionStep(request, context);
-    }
-
-
 
     public UserDefinedFederatedAuthenticator(UserDefinedFederatedAuthenticatorConfig config) {
 
