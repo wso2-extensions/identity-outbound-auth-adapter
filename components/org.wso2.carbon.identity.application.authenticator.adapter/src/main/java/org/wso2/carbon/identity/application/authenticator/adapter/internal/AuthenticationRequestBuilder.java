@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserIdNotFoundException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.auth.service.AuthServiceRequestWrapper;
 import org.wso2.carbon.identity.application.authenticator.adapter.internal.component.AuthenticatorAdapterDataHolder;
 import org.wso2.carbon.identity.application.authenticator.adapter.internal.constant.AuthenticatorAdapterConstants;
 import org.wso2.carbon.identity.application.authenticator.adapter.internal.model.AuthenticatingUser;
@@ -51,6 +52,9 @@ import org.wso2.carbon.identity.organization.management.service.util.Organizatio
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authenticator.adapter.internal.constant.AuthenticatorAdapterConstants.AUTH_REQUEST;
 
 /**
  * This is a builder class which is responsible for building authentication request payload which will be sent to the
@@ -80,13 +84,13 @@ public class AuthenticationRequestBuilder implements ActionExecutionRequestBuild
         ActionExecutionRequest.Builder actionRequestBuilder = new ActionExecutionRequest.Builder();
         actionRequestBuilder.flowId(context.getContextIdentifier());
         actionRequestBuilder.actionType(getSupportedActionType());
-        actionRequestBuilder.event(getEvent(context));
+        actionRequestBuilder.event(getEvent(context, flowContext));
         actionRequestBuilder.allowedOperations(getAllowedOperations());
 
         return actionRequestBuilder.build();
     }
 
-    private Event getEvent(AuthenticationContext context) throws ActionExecutionRequestBuilderException {
+    private Event getEvent(AuthenticationContext context, FlowContext flowContext) throws ActionExecutionRequestBuilderException {
 
         AuthenticatedUser currentAuthenticatedUser = context.getLastAuthenticatedUser();
 
@@ -100,6 +104,9 @@ public class AuthenticationRequestBuilder implements ActionExecutionRequestBuild
                 context.getServiceProviderName()));
         eventBuilder.currentStepIndex(context.getCurrentStep());
         eventBuilder.authenticatedSteps(getAuthenticatedStepsForEventBuilder(context));
+        Map<String, String[]> requestProperties = ((AuthServiceRequestWrapper) flowContext.getContextData()
+                .get(AUTH_REQUEST)).getParameterMap();
+        eventBuilder.properties(requestProperties);
         return eventBuilder.build();
     }
 

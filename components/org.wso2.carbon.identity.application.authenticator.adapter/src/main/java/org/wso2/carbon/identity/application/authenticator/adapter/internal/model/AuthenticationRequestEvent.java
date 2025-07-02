@@ -27,6 +27,8 @@ import org.wso2.carbon.identity.action.execution.api.model.User;
 import org.wso2.carbon.identity.action.execution.api.model.UserStore;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 
+import java.util.Map;
+
 /**
  * This class holds the authentication request event object which is communicated to the external
  * authentication service.
@@ -35,6 +37,7 @@ public class AuthenticationRequestEvent extends Event {
 
     private int currentStepIndex;
     private AuthenticatedStep[] authenticatedSteps;
+    private Map<String, String[]> requestProperties;
 
     private AuthenticationRequestEvent(Builder builder) {
 
@@ -46,6 +49,7 @@ public class AuthenticationRequestEvent extends Event {
         this.user = builder.user;
         this.userStore = builder.userStore;
         this.application = builder.application;
+        this.requestProperties = builder.properties;
     }
 
     public int getCurrentStepIndex() {
@@ -56,6 +60,11 @@ public class AuthenticationRequestEvent extends Event {
     public AuthenticatedStep[] getAuthenticatedSteps() {
 
         return authenticatedSteps;
+    }
+
+    public Map<String, String[]> getRequestProperties() {
+
+        return requestProperties;
     }
 
     /**
@@ -71,6 +80,7 @@ public class AuthenticationRequestEvent extends Event {
         private User user;
         private UserStore userStore;
         private Application application;
+        private Map<String, String[]> properties;
 
         public Builder currentStepIndex(int currentStep) {
 
@@ -117,6 +127,12 @@ public class AuthenticationRequestEvent extends Event {
         public Builder application(Application application) {
 
             this.application = application;
+            return this;
+        }
+
+        public Builder properties(Map<String, String[]> properties) {
+
+            this.properties = properties;
             return this;
         }
 
