@@ -35,4 +35,15 @@ public class UserDefinedFederatedAuthenticator extends AbstractAuthenticatorAdap
         authenticatorName = config.getName();
         friendlyName = config.getDisplayName();
     }
+
+    /**
+     * User defined federated authenticators cannot be shared with child organizations.
+     *
+     * @return false.
+     */
+    @Override
+    public boolean isShareableWithChildOrganizations() {
+
+        return false;
+    }
 }
